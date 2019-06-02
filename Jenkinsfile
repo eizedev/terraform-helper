@@ -29,9 +29,9 @@ pipeline {
         stage('Set Version') {
             when { branch 'master' }
             steps {
-                sh "sed -e 's/\${VERSION}/${currentBuild.number}/' Initialize-PC.ps1 > temp.ps1"
-                sh "rm Initialize-PC.ps1"
-                sh "mv temp.ps1 Initialize-PC.ps1"
+                sh "sed -e 's/\${VERSION}/${currentBuild.number}/' tf.ps1 > temp.ps1"
+                sh "rm tf.ps1"
+                sh "mv temp.ps1 tf.ps1"
             }
         }
         stage('Deploy to PowerShell Gallery') {
