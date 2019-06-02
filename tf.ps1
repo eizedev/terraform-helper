@@ -13,7 +13,10 @@
 #>
 
 param (
+  [Parameter(Mandatory = $True)]
   [string]$command,
+
+  [Parameter(Mandatory = $True)]
   [string]$env
 )
 
