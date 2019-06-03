@@ -20,6 +20,33 @@ param (
   [string]$env
 )
 
+function IsValidCommand {
+  param (
+    [Parameter(Mandatory = $True)]
+    [string]$command
+  )
+
+  return $command -eq "apply" -or $command -eq "destroy"
+}
+
+function DoesTFDirExist {
+  return Test-Path "./tf/"
+}
+
+################################################################################
+
+if ($false -eq (IsValidCommand $command)) {
+  Write-Error "Invalid command - currently supported commands are: `
+    'apply', 'destroy'"
+  exit 1
+}
+
+if ($false -eq (DoesTFDirExist)) {
+  Write-Error "tf/ directory does not exist, ensure you are in the correct `
+    project and the project has a tf/ directory."
+  exit 1
+}
+
 terraform init -backend-config="tf/$env.beconf.tfvars" .\tf
 
 if ($False -eq (Test-Path "./tf/$env.secrets.tfvars")) {
