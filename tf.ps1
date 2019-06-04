@@ -21,7 +21,7 @@ param (
 )
 
 $availableCommands = @(
-  "apply", "destroy"
+  "apply", "destroy", "create"
 )
 
 function IsValidCommand {
@@ -43,6 +43,13 @@ function DoesEnvExist {
     (Test-Path "./tf/$env.secrets.tfvars"))
 }
 
+function CreateEnv {
+  New-Item -Path "./tf/" -Name "$env.beconf.tfvars" -ItemType "file" | Out-Null
+  New-Item -Path "./tf/" -Name "$env.tfvars" -ItemType "file" `
+    -Value "env = `"$env`"" | Out-Null
+  New-Item -Path "./tf/" -Name "$env.secrets.tfvars" -ItemType "file" | Out-Null
+}
+
 ################################################################################
 
 if ($false -eq (IsValidCommand $command)) {
@@ -55,6 +62,13 @@ if ($false -eq (DoesTFDirExist)) {
   Write-Error "tf/ directory does not exist, ensure you are in the correct `
     project and the project has a tf/ directory."
   exit 1
+}
+
+if ($command -eq "create") {
+  CreateEnv
+  Write-Output "$env environment created, please configure .tfvars files and `
+    run the 'apply' command."
+  exit 0
 }
 
 if ($false -eq (DoesEnvExist)) {
