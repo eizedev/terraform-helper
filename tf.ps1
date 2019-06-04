@@ -44,10 +44,26 @@ function DoesEnvExist {
 }
 
 function CreateEnv {
-  New-Item -Path "./tf/" -Name "$env.beconf.tfvars" -ItemType "file" | Out-Null
-  New-Item -Path "./tf/" -Name "$env.tfvars" -ItemType "file" `
-    -Value "env = `"$env`"" | Out-Null
-  New-Item -Path "./tf/" -Name "$env.secrets.tfvars" -ItemType "file" | Out-Null
+  function CreateIfNotExists {
+    param (
+      [Parameter(Mandatory = $True)]
+      [string]$path,
+
+      [Parameter(Mandatory = $True)]
+      [string]$name,
+
+      [string]$value
+    )
+
+    if ($false -eq (Test-Path "$path$name")) {
+      New-Item -Path $path -Name $name -ItemType "file" -Value $value | Out-Null
+      Write-Output "$path$name created."
+    }
+  }
+
+  CreateIfNotExists "./tf/" "$env.beconf.tfvars"
+  CreateIfNotExists "./tf/" "$env.tfvars" "env = `"$env`""
+  CreateIfNotExists "./tf/" "$env.secrets.tfvars"
 }
 
 ################################################################################
