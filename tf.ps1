@@ -20,24 +20,34 @@ param (
   [string]$env
 )
 
+$availableCommands = @(
+  "apply", "destroy"
+)
+
 function IsValidCommand {
   param (
     [Parameter(Mandatory = $True)]
     [string]$command
   )
 
-  return $command -eq "apply" -or $command -eq "destroy"
+  return $availableCommands.Contains($command)
 }
 
 function DoesTFDirExist {
   return Test-Path "./tf/"
 }
 
+function DoesEnvExist {
+  return ((Test-Path "./tf/$env.beconf.tfvars") -and
+    (Test-Path "./tf/$env.tfvars") -and
+    (Test-Path "./tf/$env.secrets.tfvars"))
+}
+
 ################################################################################
 
 if ($false -eq (IsValidCommand $command)) {
   Write-Error "Invalid command - currently supported commands are: `
-    'apply', 'destroy'"
+  ${availableCommands}"
   exit 1
 }
 
@@ -47,12 +57,11 @@ if ($false -eq (DoesTFDirExist)) {
   exit 1
 }
 
-terraform init -backend-config="tf/$env.beconf.tfvars" .\tf
-
-if ($False -eq (Test-Path "./tf/$env.secrets.tfvars")) {
-  Write-Output  "Running without secrets .tfvars"
-  terraform $command -var-file="tf\$env.tfvars" .\tf
-  exit 0
+if ($false -eq (DoesEnvExist)) {
+  Write-Error "Environment configuration doesn't exist (.beconf.tfvars, `
+    .tfvars, and .secrets.tfvars). Ensure the environment is entered correctly."
+  exit 1
 }
 
+terraform init -backend-config="tf/$env.beconf.tfvars" .\tf
 terraform $command -var-file="tf\$env.tfvars" -var-file="tf\$env.secrets.tfvars" .\tf
