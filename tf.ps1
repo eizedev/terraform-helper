@@ -66,6 +66,19 @@ function CreateEnv {
   CreateIfNotExists "./tf/" "$env.secrets.tfvars"
 }
 
+function CreateTfFolder {
+  WaitForPrompt("tf/ does not exist, create?")
+  New-Item -Path ./tf/ -ItemType "directory" | Out-Null
+  Write-Output "$path$name created."
+}
+
+function WaitForPrompt($prompt) {
+  do {
+    $value = Read-Host "$prompt ('y' to continue, Ctrl-C to quit)"
+  }
+  while ($value -notmatch 'y')
+}
+
 ################################################################################
 
 if ($false -eq (IsValidCommand $command)) {
@@ -74,17 +87,21 @@ if ($false -eq (IsValidCommand $command)) {
   exit 1
 }
 
-if ($false -eq (DoesTFDirExist)) {
-  Write-Error "tf/ directory does not exist, ensure you are in the correct `
-    project and the project has a tf/ directory."
-  exit 1
-}
-
 if ($command -eq "create") {
+  if ($false -eq (DoesTFDirExist)) {
+    CreateTfFolder
+  }
+
   CreateEnv
   Write-Output "$env environment created, please configure .tfvars files and `
     run the 'apply' command."
   exit 0
+}
+
+if ($false -eq (DoesTFDirExist)) {
+  Write-Error "tf/ directory does not exist, ensure you are in the correct `
+    project and the project has a tf/ directory."
+  exit 1
 }
 
 if ($false -eq (DoesEnvExist)) {
