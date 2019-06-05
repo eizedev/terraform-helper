@@ -62,7 +62,7 @@ function CreateEnv {
   }
 
   CreateIfNotExists "./tf/" "$env.beconf.tfvars"
-  CreateIfNotExists "./tf/" "$env.tfvars" "env = `"$env`""
+  CreateIfNotExists -path "./tf/" -name "$env.tfvars" -value "env = `"$env`""
   CreateIfNotExists "./tf/" "$env.secrets.tfvars"
 }
 
