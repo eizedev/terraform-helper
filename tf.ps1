@@ -21,7 +21,7 @@ param (
 )
 
 $availableCommands = @(
-  "apply", "destroy", "create"
+  "apply", "destroy", "create", "delete"
 )
 
 function IsValidCommand {
@@ -66,6 +66,13 @@ function CreateEnv {
   CreateIfNotExists "./tf/" "$env.secrets.tfvars"
 }
 
+function DeleteEnv {
+
+  Remove-Item "./tf/$env.beconf.tfvars"
+  Remove-Item "./tf/$env.tfvars"
+  Remove-Item "./tf/$env.secrets.tfvars"
+}
+
 function CreateTfFolder {
   WaitForPrompt("tf/ does not exist, create?")
   New-Item -Path ./tf/ -ItemType "directory" | Out-Null
@@ -108,6 +115,12 @@ if ($false -eq (DoesEnvExist)) {
   Write-Error "Environment configuration doesn't exist (.beconf.tfvars, `
     .tfvars, and .secrets.tfvars). Ensure the environment is entered correctly."
   exit 1
+}
+
+if ($command -eq "delete") {
+  DeleteEnv
+  Write-Output "$env environment deleted."
+  exit 0
 }
 
 terraform init -backend-config="tf/$env.beconf.tfvars" .\tf
