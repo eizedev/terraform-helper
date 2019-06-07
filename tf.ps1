@@ -61,7 +61,16 @@ function CreateEnv {
     }
   }
 
-  CreateIfNotExists "./tf/" "$env.beconf.tfvars"
+  $beconfContents = @"
+resource_group_name = "RG_NAME"
+storage_account_name = "terraform"
+container_name = "terraformstate"
+key = "terraformstate-$env"
+access_key = "ACCESS_KEY"
+"@
+
+  CreateIfNotExists -path "./tf/" -name "$env.beconf.tfvars" `
+    -value $beconfContents
   CreateIfNotExists -path "./tf/" -name "$env.tfvars" -value "env = `"$env`""
   CreateIfNotExists "./tf/" "$env.secrets.tfvars"
 }
