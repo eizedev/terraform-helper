@@ -16,12 +16,11 @@ param (
   [Parameter(Mandatory = $True)]
   [string]$command,
 
-  [Parameter(Mandatory = $True)]
   [string]$env
 )
 
 $availableCommands = @(
-  "apply", "destroy", "create", "delete"
+  "apply", "destroy", "create", "delete", "list"
 )
 
 function IsValidCommand {
@@ -95,11 +94,47 @@ function WaitForPrompt($prompt) {
   while ($value -notmatch 'y')
 }
 
+function ListEnvironments() {
+  $envFiles = @{ }
+  $envFiles = Get-ChildItem -Path tf/* -Include *.tfvars | `
+    Select-Object -Property Name
+
+  $envFiles | ForEach-Object -Process {
+    $_.Name = $_.Name.Substring(0, $_.Name.IndexOf("."))
+  }
+
+  return $envFiles.Name | Select-Object -Unique
+}
+
+function RunTerraformCommands() {
+  param (
+    [Parameter(Mandatory = $True)]
+    [string]$tfCommand,
+
+    [Parameter(Mandatory = $True)]
+    [string]$tfEnv
+  )
+
+  terraform init -backend-config="tf/$tfEnv.beconf.tfvars" .\tf
+  terraform $tfCommand `
+    -var-file="tf\$tfEnv.tfvars" -var-file="tf\$tfEnv.secrets.tfvars" .\tf
+}
+
 ################################################################################
 
 if ($false -eq (IsValidCommand $command)) {
   Write-Error "Invalid command - currently supported commands are: `
   ${availableCommands}"
+  exit 1
+}
+
+if ($command -eq "list") {
+  ListEnvironments
+  exit 0;
+}
+
+if ($null -eq $env) {
+  Write-Output "'env' parameter is required, please provide an environment."
   exit 1
 }
 
@@ -120,8 +155,8 @@ if ($false -eq (DoesTFDirExist)) {
   exit 1
 }
 
-if ($false -eq (DoesEnvExist)) {
-  Write-Error "Environment configuration doesn't exist (.beconf.tfvars, `
+if ($false -eq (DoesEnvExist) -and $env -ne "all") {
+  Write-Error "Environment configuration '$env' doesn't exist (.beconf.tfvars, `
     .tfvars, and .secrets.tfvars). Ensure the environment is entered correctly."
   exit 1
 }
@@ -132,5 +167,10 @@ if ($command -eq "delete") {
   exit 0
 }
 
-terraform init -backend-config="tf/$env.beconf.tfvars" .\tf
-terraform $command -var-file="tf\$env.tfvars" -var-file="tf\$env.secrets.tfvars" .\tf
+if ($env -eq "all") {
+  ListEnvironments | ForEach-Object -Process { Write-Output "Perform tf for $_" }
+}
+else {
+  RunTerraformCommands -tfCommand $command -tfEnv $env
+}
+
