@@ -168,7 +168,9 @@ if ($command -eq "delete") {
 }
 
 if ($env -eq "all") {
-  ListEnvironments | ForEach-Object -Process { Write-Output "Perform tf for $_" }
+  ListEnvironments | ForEach-Object -Process { 
+    RunTerraformCommands -tfCommand $command -tfEnv $_
+  }
 }
 else {
   RunTerraformCommands -tfCommand $command -tfEnv $env
