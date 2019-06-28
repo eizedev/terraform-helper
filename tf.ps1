@@ -168,7 +168,7 @@ if ($command -eq "delete") {
 }
 
 if ($env -eq "all") {
-  ListEnvironments | ForEach-Object -Process { 
+  ListEnvironments | ForEach-Object -Process {
     RunTerraformCommands -tfCommand $command -tfEnv $_
   }
 }
