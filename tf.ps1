@@ -115,9 +115,9 @@ function RunTerraformCommands() {
     [string]$tfEnv
   )
 
-  terraform init -backend-config="tf/$tfEnv.beconf.tfvars" .\tf
+  terraform init -backend-config="tf/$tfEnv.beconf.tfvars" ./tf
   terraform $tfCommand `
-    -var-file="tf\$tfEnv.tfvars" -var-file="tf\$tfEnv.secrets.tfvars" .\tf
+    -var-file="tf/$tfEnv.tfvars" -var-file="tf/$tfEnv.secrets.tfvars" ./tf
 }
 
 ################################################################################
